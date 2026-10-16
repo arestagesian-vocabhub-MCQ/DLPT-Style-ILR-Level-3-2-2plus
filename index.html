@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Listening Challenge</title>
+<style>
+:root{
+  --bg: #fbf6ee; --card: #fff; --muted: #6b5e4a; --accent: #ff9800; --brown: #6b3f25;
+  --success: #4caf50; --danger: #e53935; --hover-glow: #fbd380; --selected-blue: #0d47a1;
+}
+body{ background: var(--bg); font-family: "Times New Roman", serif; display:flex; justify-content:center; padding:20px 12px; }
+.app{ max-width: 860px; width: 100%; background: var(--card); border-radius:14px; padding:24px; box-shadow:0 8px 30px rgba(30,30,30,0.08); }
+.logo{text-align:center; margin-bottom:4px;}
+.logo .title{ display:inline-block; padding:8px 16px; border-radius:10px; background:linear-gradient(90deg,#fffafa,#fff1dd); font-weight:bold; font-size:1.45rem; }
+.top-meta{text-align:center;margin-bottom:12px;}
+.progress{color:var(--muted);font-size:1.15rem;}
+.set-label{font-weight:bold;font-size:1.25rem;margin-top:4px;}
+.timer-box{ display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:12px; }
+.countdown{ background:#fff7ec; border:1px solid #f0d7b8; padding:14px 18px; border-radius:10px; width:220px; text-align:center; font-weight:bold; color:var(--brown); font-size:1.25rem; }
+.play-button{ padding:10px 18px; border-radius:8px; border:none; background: var(--brown); color:white; cursor:pointer; font-size:1.15rem; font-family: "Times New Roman", serif; }
+.play-button:hover{box-shadow:0 0 10px var(--hover-glow);}
+#skipCountdownBtn{ background:#d84315; font-size:1rem; padding:9px 16px; }
+.play-instruction{text-align:center; color:#d84315; font-weight:bold; font-size:1.3rem; margin-top:8px; margin-bottom:0px;}
+.mc-section{ margin-top:0px; }
+.per-q{ margin-bottom:10px; }
+.mc-question{font-weight:bold;margin-bottom:4px;font-size:1.2rem;}
+.mc-options-box{ background:linear-gradient(180deg,#ffffff,#fff4e6); border:1px solid #ecd7b8; border-radius:10px; padding:10px 14px; display:flex; flex-direction:column; gap:4px; box-shadow:0 3px 6px rgba(0,0,0,0.03); font-size:1.18rem; }
+.mc-option-wrapper{ display:flex; align-items:flex-start; gap:6px; padding:6px 8px; border-radius:6px; cursor:pointer; transition:0.3s; color:#000; font-family: "Times New Roman", serif; }
+.mc-option-wrapper:hover{box-shadow:0 0 8px var(--hover-glow);}
+.mc-option-wrapper.disabled{cursor:not-allowed;opacity:0.6;}
+.mc-option-wrapper input[type="radio"]{ margin-top:2px; accent-color: var(--selected-blue); }
+.next-row{ display:flex; justify-content:center; align-items:center; margin-top:18px; }
+.next-btn{ background: linear-gradient(135deg, #ff8f00, #e65100); color: white; border: none; padding: 14px 40px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1.3rem; font-family: "Times New Roman", serif; box-shadow: 0 8px 28px rgba(255, 111, 0, 0.45); transition: all 0.35s ease; }
+.next-btn:hover{ transform: translateY(-5px); box-shadow: 0 15px 40px rgba(255, 111, 0, 0.6); }
+.next-btn.submit { background: linear-gradient(135deg, #e65100, #c62828); box-shadow: 0 8px 28px rgba(198,40,40,.5); }
+.next-btn.submit:hover { box-shadow: 0 15px 40px rgba(198,40,40,.7); }
+.audio-ribbon{display:none; margin:20px auto; max-width:680px; width:100%; text-align:center; font-weight:bold; color:#6b3f25; font-size:1.1rem;}
+.audio-ribbon > div{ margin-bottom:10px; color:#d84315; }
+.audio-ribbon audio{ width:100%; max-width:600px; margin:0 auto; display:block; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+.saved-notify{ position:fixed; top:18px; right:18px; background:var(--success); color:white; padding:10px 14px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.15); opacity:0; transition:all 0.3s ease; z-index:9999; font-weight:bold; font-size:0.95rem; }
+.saved-notify.show{opacity:1;}
+#resultOverlay{ display:none; max-width:980px; margin:30px auto 0; padding:28px; background:#fffbe0; border-radius:14px; box-shadow:0 12px 40px rgba(30,30,30,0.12); font-family:"Times New Roman", serif; }
+.result-box{ border:1px solid #ddd; border-radius:12px; padding:18px; margin-bottom:22px; background:#fff; }
+.transcription{ margin:15px 0; padding:16px; background:#fdf8e1; border-left:5px solid var(--accent); border-radius:8px; font-size:1.15rem; line-height:1.9; direction:rtl; text-align:right; color:#222; }
+.transcription span.evidence-0 { background:#fff34d; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(255,243,77,0.7); }
+.transcription span.evidence-1 { background:#a7f3d0; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(167,243,208,0.7); color:#065f46; }
+.transcription span.evidence-2 { background:#fda4af; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(253,164,175,0.7); color:#881337; }
+.transcription span.evidence-3 { background:#93c5fd; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(147,197,253,0.7); color:#1e40af; }
+.transcription span.evidence-4 { background:#d8b4fe; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(216,180,254,0.7); color:#6b21a8; }
+.transcription span.evidence-5 { background:#fcd34d; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(252,211,77,0.7); color:#92400e; }
+.transcription span.evidence-6 { background:#fecaca; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(254,202,202,0.7); color:#991b1b; }
+.transcription span.evidence-7 { background:#bfdbfe; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(191,219,254,0.7); color:#1e40af; }
+.result-question{ font-weight:bold; font-size:1.22rem; margin:18px 0 10px; color:#333; }
+.result-option{ padding:10px 14px; margin:6px 0; border-radius:8px; font-size:1.15rem; display:flex; align-items:center; gap:10px; background:#f9f9f9; border:2px solid transparent; }
+.result-option.correct{ background:#d8f6df; border:2px solid #2e8b35; color:#0b5b2b; font-weight:bold; position:relative; padding-right:90px; }
+.result-option.correct::after{ content:"Correct!"; position:absolute; right:14px; font-size:18px; }
+.result-option.wrong{ background:#fce8e8; border:2px solid #c73232; color:#8b0000; font-weight:bold; position:relative; padding-right:90px; }
+.result-option.wrong::after{ content:"Wrong!"; position:absolute; right:14px; font-size:18px; }
+.result-option.your{ color:#d84315; font-weight:bold; }
+.score-box{ font-weight:bold; font-size:1.6rem; margin:0 0 30px 0; padding:20px; border-radius:12px; background:linear-gradient(90deg,#fff8b0,#ffe680); text-align:center; box-shadow:0 6px 20px rgba(255,200,0,0.25); }
+#congratsOverlay{ display:none; position:fixed; inset:0; background: rgba(0,0,0,0.45); z-index:10000; align-items:center; justify-content:center; }
+#congratsCard{ max-width:720px; width:90%; background: linear-gradient(135deg,#ffffff,#fff8f0); border-radius:18px; padding:28px; text-align:center; box-shadow: 0 20px 60px rgba(0,0,0,0.25); animation: popIn 400ms ease; }
+@keyframes popIn{ from{transform:translateY(10px) scale(.98); opacity:0} to{transform:none; opacity:1} }
+#congratsCard h1{ font-size:2rem; margin:6px 0; color:#2e6b3e; font-weight:bold; }
+#seeResultsBtn{ display:inline-block; padding:14px 22px; border-radius:12px; background: linear-gradient(90deg,#ffb74d,#ff8a65); color:white; font-weight:bold; font-size:1.1rem; border:none; cursor:pointer; box-shadow:0 8px 30px rgba(255,140,65,0.25); }
+#seeResultsBtn:hover{ transform:translateY(-3px); }
+.glow-instruction{ text-align:center; font-weight:bold; font-size:1.25rem; color:#6b3f25; text-shadow: 0 0 6px #ff8f00; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="logo"><div class="title">Listening Challenge</div></div>
+  <div class="top-meta">
+    <div class="progress" id="progressText"></div>
+    <div class="set-label" id="setLabel"></div>
+  </div>
+  <div class="timer-box">
+    <div class="countdown" id="countdownBox">Loading...</div>
+    <button id="skipCountdownBtn" class="play-button">Skip Countdown</button>
+  </div>
+  <div id="studyInstruction" class="glow-instruction">Study the Questions</div>
+  <div style="text-align:center; margin-top:12px;">
+    <button id="playBtn" class="play-button" style="display:none;">Play Audio</button>
+    <div id="audioNote" class="play-instruction" style="display:none;">
+      You will hear the recording <strong>twice</strong>
+    </div>
+  </div>
+  <div class="audio-ribbon" id="audioRibbon">
+    <div>Now playing... (beep → audio → beep → audio)</div>
+    <audio id="audioPlayer" controls preload="auto"></audio>
+  </div>
+  <audio id="beepAudio" src="beep.wav" preload="auto"></audio>
+  <div class="mc-section" id="mcSection"></div>
+  <div class="next-row">
+    <button id="nextBtn" class="next-btn">Next Challenge</button>
+  </div>
+</div>
+
+<div id="congratsOverlay">
+  <div id="congratsCard">
+    <img src="https://media.giphy.com/media/111ebonMs90YLu/giphy.gif" alt="celebrate" style="max-width:220px;margin:0 auto 12px auto;display:block;" />
+    <h1>Challenge Completed Successfully!</h1>
+    <p>Great job! Click below to see your detailed results.</p>
+    <button id="seeResultsBtn">See Results</button>
+  </div>
+</div>
+
+<div id="resultOverlay"></div>
+<div class="saved-notify" id="savedNotify">Answer saved</div>
+
+<script>
+const studySecondsPerQuestion = 15;
+let currentPage = 1;
+let countdownInterval = null;
+let timeLeft = 0;
+let audioSequenceActive = false;
+let abortAudio = false;
+const userAnswers = {};
+const letters = ["A", "B", "C", "D"];
+
+const el = {
+  progressText: document.getElementById("progressText"),
+  setLabel: document.getElementById("setLabel"),
+  countdownBox: document.getElementById("countdownBox"),
+  skipCountdownBtn: document.getElementById("skipCountdownBtn"),
+  playBtn: document.getElementById("playBtn"),
+  mcSection: document.getElementById("mcSection"),
+  nextBtn: document.getElementById("nextBtn"),
+  audioRibbon: document.getElementById("audioRibbon"),
+  audioPlayer: document.getElementById("audioPlayer"),
+  beepAudio: document.getElementById("beepAudio"),
+  savedNotify: document.getElementById("savedNotify"),
+  audioNote: document.getElementById("audioNote"),
+  resultOverlay: document.getElementById("resultOverlay"),
+  studyInstruction: document.getElementById("studyInstruction"),
+  congratsOverlay: document.getElementById("congratsOverlay"),
+  seeResultsBtn: document.getElementById("seeResultsBtn")
+};
+
+const listeningSets = [
+  {
+    audio: "01.wav",
+    transcription: `سلام و علیکم، خوش آمدین. صادقمون و فخرالدینم که نرسیدن اصلاً به دانشگاه. دو پسرش را می‌گوید که در هر گوشه خانه انگار به تماشا نشسته‌اند.اولی صادق بود که ایشون در یک رفت و برگشت شهید شد.صادق هنوز ۱۸ سالش نشده بود که سال ۶۲ در والفجر ۱ شهید شد و پیکرش ۱۰ سال دور از خانه بود. اما ۵ سال بعد، نوبت برادر کوچک ‌تر شد.بعضی از فامیل گفتن دیگه اینا رو نذارین بره، شما که شهید دادین. گفتن نه، ما باید بریم. وظیفه همه مرداست تا اون اندازه‌ای که لازمه جبهه باشه. وظیفه همه است که باید برن. فخرالدین که هنوز او هم ۱۸ سالش نشده بود. یه سال و خورده‌ای رفت و اومد، اونم تو بیت‌المقدس ۲ رو ارتفاعات ماؤوت. همون‌جا که شهید شده بود، یخ زده بود بچه، بعد دیگه همین‌طوری رو گذاشتن که بچه‌ها رو خاطره اینا آورده بودن. ۴۰ سالم نشده بود.۴۰ سالتون نشده بود که شدین مادر شهید؟ خودم لباس تنشون کردم گفتم برین. راهی بهتر از راه حسین ابن علی نیست. قسمتی از خانه به یاد قرآن خواندن‌های صادق و فخرالدین حالا محل عبادت خانواده شده.حاج خانم تمام یادگاری‌های بچه‌هاشون رو گذاشتن تو این محوطه‌ای که به یاد دو تا فرزند شهیدشون آماده کردن. پرخاشگر نبودن، اهل جنگ و دعوا نبودن. حتی با یکی از فامیل‌هامون همکلاس بودن. اگر کسی اینا رو مثلاً اذیت می‌کرد، اینا خودشون تلافی نمی‌کردن. اون فامیلمون پشتشون درمی‌اومد. همه‌ش می‌گفت من محافظ بچه‌هاتونم. خوب بودن، درسشون خوب می‌خوندن، کمک می‌کردن به خانواده. وقتی خبر شهادت صادق و آوردن یا فخرالدین و آوردن؟ إِنَّا لِلَّٰهِ وَإِنَّا إِلَیْهِ رَاجِعُونَ. فدای سر حسین ابن علی و بچه‌هاش. وقتی من ایمان دارم که می‌ره اونجا بهترین جا رو خدای متعال بهش می‌ده، واسه چی گریه کنم؟ خدا رو شکر. می‌گم الحمدلله که زحمت‌های من رو هدر ندادین. گوشه‌ای از حکایت مادران ایران که رسم مادری خود را با عشق و رضایت خدا گره زدند. محبوبه ببارحیم، خبرگزاری صدا و سیما.`,
+    questions: [
+      { id: "1-1", question: "1. What underlying message does the mother convey about her sons’ decision to go to the front?",
+        keyphrases: ["ما باید بریم. وظیفه همه مرداست تا اون اندازه‌ای که لازمه جبهه باشه. وظیفه همه است که باید برن","خودم لباس تنشون کردم گفتم برین. راهی بهتر از راه حسین ابن علی نیست. "],
+        options: [
+          { answer: "She regarded going to the front as a moral and religious responsibility for capable men.", correct:true },
+          { answer: "She believed their participation was unavoidable due to family expectations.", correct:false },
+          { answer: "She viewed military service as a personal choice unrelated to religious values.", correct:false },
+          { answer: "She felt pressured by relatives but ultimately prioritized social approval over her own judgment.", correct:false }
+        ]
+      },
+      { id: "1-2", question: "2. Why does the mother say she does not cry over her sons’ deaths?",
+        keyphrases: ["وقتی من ایمان دارم که می‌ره اونجا بهترین جا رو خدای متعال بهش می‌ده، واسه چی گریه کنم؟"],
+        options: [
+          { answer: "She believes grieving publicly dishonors the sacrifice made by her community.", correct:false },
+          { answer: "Her faith assures her that her sons have attained a spiritually elevated place.", correct:true },
+          { answer: "She had long anticipated their deaths due to their training and behavior at home.", correct:false },
+          { answer: "She had already emotionally distanced herself once they enlisted as teenagers.", correct:false }
+        ]
+      },
+      { id: "1-3", question: "3. What do the mother’s descriptions of the boys’ personalities primarily suggest?",
+        keyphrases: ["پرخاشگر نبودن، اهل جنگ و دعوا نبودن","اگر کسی اینا رو مثلاً اذیت می‌کرد، اینا خودشون تلافی نمی‌کردن"],
+        options: [
+          { answer: "They were drawn to front-line combat because of their confrontational nature.", correct:false },
+          { answer: "Their calm temperament contrasted with the hardships they later experienced.", correct:true },
+          { answer: "They were academically unsuccessful but compensated through military service.", correct:false },
+          { answer: "Their tendency to avoid conflict caused tension within their extended family.", correct:false }
+        ]
+      },
+      { id: "1-4", question: "4. What does the transformation of part of the house into a worship area symbolize for the family?",
+        keyphrases: ["قسمتی از خانه به یاد قرآن خواندن‌های صادق و فخرالدین حالا محل عبادت خانواده شده.حاج خانم تمام یادگاری‌های بچه‌هاشون رو گذاشتن تو این محوطه‌ای که به یاد دو تا فرزند شهیدشون آماده کردن."],
+        options: [
+          { answer: "Their belief that mourning must be expressed through long-term ritual practice.", correct:false },
+          { answer: "Their attempt to preserve the exact environment the boys lived in before leaving.", correct:false },
+          { answer: "Their desire to limit contact with relatives who questioned the boys’ departure.", correct:false },
+          { answer: "Their integration of personal loss with ongoing spiritual reflection and devotion.", correct:true }
+        ]
+      }
+    ]
+  },
+  {
+    audio: "02.wav",
+    transcription: `با این سوال به جلسه کارگروه ملی کاهش آلودگی هوا رفتیم: چرا قانون هوای پاک اجرا نمی‌شه؟ تکلیف قانون هوای پاک هست؟
+این کارگروه تکالیف دستگاه‌ها در اجرای قانون هوای پاک رو بررسی می‌کنه. باید سوخت استاندارد ما داشته باشیم. ماده ۱۸ این قانون می‌گه وزارت نفت سوخت تولیدی کشور رو مطابق با استاندارد ملی باید عرضه کنه. اما بررسی‌های سازمان استاندارد و سازمان حفاظت محیط زیست چیز دیگه‌ای نشون می‌ده. بیش از ۸۳ درصد سوخت عدم انطباق دارد. برداشت عمومی از این گزارش اینه که کیفیت سوخت باعث ایجاد این وضعیت شده. که این برداشت، برداشت درستی نیست. ببینید گزارش سازمان ملی استاندارد، یک گزارش فنیه و با این گزارش فنی واقعاً قضاوت به این شکلی که دوستان حالا راجع بهش صحبت می‌کنن، این واقعاً جای بحث فنی داره.
+معاونت اجرایی رئیس جمهور، وزارت نفت، سازمان ملی استاندارد و سازمان حفاظت محیط زیست رو مکلف کرد تا دو هفته آینده درباره استانداردهای سوخت به اجماع برسن. این گزارش رو بیارن دولت هماهنگی بکنن که در دولت وزارت نفت برنامه رفع این آلودگی‌ها و رفع این ذرات مضر رو در تولیدات نفتیش اعمال بکنه. وقتی می‌گن ای‌وَش همه گفتی، هنرش نیست بگو. وزارت نفت امسال برای اولین بار ۴۰۰ میلیون لیتر مازوت کم‌گوگرد با کمک شرکت‌های دانش‌بنیان داخلی تولید کرد که خب این اتفاق بسیار مثبتی بود.
+قانون هوای پاک هشت سال از تصویبش گذشته که بررسی‌ها نشون داده فقط ۱۳ درصدش اجرایی شده. ۲۳ دستگاه در این قانون تکلیف دارن. ما یادداشتی رو به نمایندگان دستگاه‌های مختلف می‌دیم تا در پایان بمونن و به سوالات ما پاسخ بدن. در این جلسه یکی از تکالیف وزارت کشور هم که دسترسی پلیس راهور به داده‌های دوربین‌های هوشمند شهرداریه، تعیین تکلیف شد. شهرداری‌ها زیر نظر کیه؟ وزارت کشور. بله. قرار نیست که ما هر جلسه بذاریم نتیجه نده. من الان گفتم که باید شهرداری، شهرداری حالا بخصوص شهرداری تهران اطلاعاتش رو برخط بده به پلیس که پلیس بتونه کسانی که معاینه فنی ندارند و ماشین‌هاشون آلودگی ایجاد می‌کنه، بتونه اعمال قانون بکنه.
+`,
+    questions: [
+      { id: "2-1", question: "1. What is the main task of the National Working Group on Air Pollution Reduction?",
+        keyphrases: ["این کارگروه تکالیف دستگاه‌ها در اجرای قانون هوای پاک رو بررسی می‌کنه"],
+        options: [
+          { answer: "To review the duties of different organizations under the Clean Air Law", correct:true },
+          { answer: "To enforce vehicle inspections directly", correct:false },
+          { answer: "To produce low-sulfur fuel in Iran", correct:false },
+          { answer: "To supervise the Tehran municipality", correct:false }
+        ]
+      },
+      { id: "2-2", question: "2. According to Article 18 of the Clean Air Law, what is the Ministry of Oil required to do?",
+        keyphrases: ["ماده ۱۸ این قانون می‌گه وزارت نفت سوخت تولیدی کشور رو مطابق با استاندارد ملی باید عرضه کنه"],
+        options: [
+          { answer: "Reduce air pollution caused by vehicles", correct:false },
+          { answer: "Produce fuel with low sulfur content only", correct:false },
+          { answer: "Provide data to the police about polluting vehicles", correct:false },
+          { answer: "Supply all fuel according to national standards", correct:true }
+        ]
+      },
+      { id: "2-3", question: "3. How much low-sulfur mazut did the Ministry of Oil produce this year, and why is it important?",
+        keyphrases: ["وزارت نفت امسال برای اولین بار ۴۰۰ میلیون لیتر مازوت کم‌گوگرد با کمک شرکت‌های دانش‌بنیان داخلی تولید کرد که خب این اتفاق بسیار مثبتی بود"],
+        options: [
+          { answer: "400 million liters; it replaced all high-sulfur fuel", correct:false },
+          { answer: "400 million liters; it was the first time domestic companies contributed", correct:true },
+          { answer: "40 million liters; it had no significant impact", correct:false },
+          { answer: "4 million liters; it was the first production of any kind", correct:false }
+        ]
+      }
+    ]
+  },
+  {
+    audio: "03.wav",
+    transcription: `ایجاد ۸۰۰ شغل برای زنان روستا حاصل تلاش‌های یک بانوی بااراده است. الان تو سطح روستای بیان یا حالا روستاهای اطراف ما دیگه بعید می‌دونم حالا کمتر خانمی پیش می‌آد که بیکار باشه تو خونه. اکثراً هم اومدن اینجا مهارت یاد گرفتن از مرکز ما، هم وام گرفتن، هم اشتغال ایجاد کردن. یکی از اهالی شهرت گلیم‌های خود را به اروپا رسانده است. هر طرحی که از گلیم می‌زنم، الهام گرفته از خاطرات و زندگی زنان عشایر روستای این سرزمینه. تا حالا به کشورهای فرانسه و کانادا صادر شده. خیاطی و قالی‌بافی حالا شده منبع درآمد خانواده دیگر. از وامی که از تعاون گرفتم، تونستم یه دار قالی رو بخرم. این بانوی توان‌یاب هم توانسته در زندگی‌اش استقلال مالی داشته باشد. توش کار می‌کنم و خوب فروش می‌ره. نخستین تعاونی زنان روستایی استان و در کنارش مرکز آموزشی روستا، عامل این خودکفایی و خوداتکایی بوده است. دارای چهار تا رشته آموزشی خیاطی، قالی‌بافی، آرایشگری و کامپیوتر. کل روستاهای همجوارمون هم میان اینجا و آموزش می‌بینن. تو این مرکز هم به هدفم نزدیک شدم و هم اعتماد به نفسم بالا رفته. حدود ۸۰۰ نفر عضو داره. ما برای هر ۸۰۰ نفر شغل ایجاد کردیم. بنیان‌گذار این مراکز می‌گوید: روزی که تصمیم گرفت برای زنان روستایی‌اش شغل ایجاد کند، کمتر کسی باور داشت این حرکت نتیجه بدهد. چشم چپم نابینا و چشم راستم حدود ۱۰ درصد از دیدش باقی مونده. استقامت کردم و خدا رو شکر که الان یکی از معلولین موفق شهرستان نهاوند هستم. این بانوی توان‌یاب روستایی نشان داده که یک حرکت کوچک می‌تواند چرخه‌ای بزرگ از امید و اشتغال را بسازد. در استان همدان حدود ۳۳ هزار فرد دارای معلولیت وجود دارد که بیش از ۱۰ هزار نفر از آنان توانسته‌اند برای خود و دیگران اشتغال ایجاد کنند. لیلا نادعلی‌فر، خبرگزاری صدا و سیما، روستای بیان، نهاوند
+
+`,
+    questions: [
+      { id: "3-1", question: "1.What was the main outcome of the determined woman’s efforts in the village?",
+        keyphrases: ["حدود ۸۰۰ نفر عضو داره. ما برای هر ۸۰۰ نفر شغل ایجاد کردیم"],
+        options: [
+          { answer: "She trained some women in sewing and carpet weaving", correct:false },
+          { answer: "She created around 800 jobs and helped women gain skills and loans", correct:true },
+          { answer: "She exported carpets to France and Canada", correct:false },
+          { answer: "She opened a training center with a membership limited to 200 women", correct:false }
+        ]
+      },
+      { id: "3-2", question: "2. How did the woman’s personal experience influence her achievements?",
+        keyphrases: ["چشم چپم نابینا و چشم راستم حدود ۱۰ درصد از دیدش باقی مونده. استقامت کردم و خدا رو شکر که الان یکی از معلولین موفق شهرستان نهاوند هستم"],
+        options: [
+          { answer: "She was partially blind and gained financial independence through her work", correct:true }, 
+          { answer: "She faced personal challenges but participated in village programs", correct:false },
+          { answer: "She inherited a business and expanded it to create employment", correct:false },
+          { answer: "She focused on carpet weaving and ignored other training programs", correct:false }
+        ]
+      },
+      { id: "3-3", question: "3. What is the broader significance of this cooperative for the province?",
+        keyphrases: ["این بانوی توان‌یاب روستایی نشان داده که یک حرکت کوچک می‌تواند چرخه‌ای بزرگ از امید و اشتغال را بسازد. در استان همدان حدود ۳۳ هزار فرد دارای معلولیت وجود دارد که بیش از ۱۰ هزار نفر از آنان توانسته‌اند برای خود و دیگران اشتغال ایجاد کنند"],
+        options: [
+          { answer: "It shows that a small initiative can create employment for many people", correct:true }, 
+          { answer: "It mainly benefits women in Bian and nearby villages", correct:false },
+          { answer: "It has generated opportunities for exporting carpets internationally", correct:false },
+          { answer: "It functions alongside other programs for people with disabilities in the province", correct:false }
+        ]
+      },
+      { id: "3-4", question: "4. What combination of factors helped the village women gain employment through the center?",
+        keyphrases: ["اکثراً هم اومدن اینجا مهارت یاد گرفتن از مرکز ما، هم وام گرفتن، هم اشتغال ایجاد کردن"],
+        options: [
+          { answer: "Exporting carpets to Europe and using inherited looms", correct:false },
+          { answer: "Learning skills, obtaining loans, and accessing training from the cooperative", correct:true },
+          { answer: "Only attending training sessions in sewing and hairdressing", correct:false },
+          { answer: "Receiving government stipends and marketing assistance", correct:false }
+        ]
+      }
+    ]
+  }
+];
+
+const TOTAL_PAGES = listeningSets.length;
+
+/* ====================== ALL FUNCTIONS (unchanged except minor robustness) ====================== */
+function updateButtonText() {
+  el.nextBtn.textContent = currentPage === TOTAL_PAGES ? "Submit Challenge" : "Next Challenge";
+  el.nextBtn.classList.toggle("submit", currentPage === TOTAL_PAGES);
+}
+function stopAllAudio() {
+  abortAudio = true; audioSequenceActive = false;
+  [el.beepAudio, el.audioPlayer].forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e){} });
+  el.audioPlayer.src = "";
+  el.audioRibbon.style.display = "none";
+  el.playBtn.style.display = "inline-block";
+}
+async function playAudioSequence() {
+  if (audioSequenceActive) return;
+  abortAudio = false; audioSequenceActive = true;
+  el.audioNote.style.display = "none";
+  el.audioRibbon.style.display = "block";
+  el.playBtn.style.display = "none";
+  el.audioPlayer.src = listeningSets[currentPage-1].audio;
+  el.audioPlayer.load();
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+  const waitEnd = audio => new Promise(r => { audio.onended = () => { audio.currentTime = 0; r(); }; });
+  try {
+    await el.beepAudio.play(); await delay(1000);
+    await el.audioPlayer.play(); await waitEnd(el.audioPlayer);
+    await delay(1000); await el.beepAudio.play(); await delay(1000);
+    await el.audioPlayer.play(); await waitEnd(el.audioPlayer);
+  } catch(e) {}
+  if (!abortAudio) { audioSequenceActive = false; el.playBtn.style.display = "inline-block"; }
+}
+function enterListeningPhase() {
+  el.countdownBox.style.display = el.skipCountdownBtn.style.display = "none";
+  el.playBtn.style.display = "inline-block";
+  el.audioNote.style.display = "block";
+  el.studyInstruction.style.display = "none";
+  disableMCQs(false);
+}
+function startStudyTimerForPage(page) {
+  stopAllAudio();
+  const set = listeningSets[page-1];
+  timeLeft = studySecondsPerQuestion * set.questions.length;
+  el.countdownBox.textContent = `Study time — ${formatTime(timeLeft)}`;
+  el.countdownBox.style.display = el.skipCountdownBtn.style.display = "block";
+  el.playBtn.style.display = "none";
+  el.audioRibbon.style.display = "none";
+  el.audioNote.style.display = "none";
+  el.studyInstruction.style.display = "block";
+  disableMCQs(true);
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    timeLeft--;
+    if (timeLeft <= 0) { clearInterval(countdownInterval); enterListeningPhase(); }
+    else el.countdownBox.textContent = `Study time — ${formatTime(timeLeft)}`;
+  }, 1000);
+}
+function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+function showSaved() {
+  el.savedNotify.classList.add("show");
+  clearTimeout(el.savedNotify._t);
+  el.savedNotify._t = setTimeout(() => el.savedNotify.classList.remove("show"), 1200);
+}
+function disableMCQs(flag) {
+  el.mcSection.querySelectorAll('input[type="radio"]').forEach(r => r.disabled = flag);
+}
+function renderMCQs(page) {
+  const set = listeningSets[page-1];
+  el.mcSection.innerHTML = "";
+  set.questions.forEach((q, qIdx) => {
+    const wrapper = document.createElement("div"); wrapper.className = "per-q";
+    const qEl = document.createElement("div"); qEl.className = "mc-question";
+    qEl.textContent = `${qIdx+1}. ${q.question}`;
+    wrapper.appendChild(qEl);
+    const box = document.createElement("div"); box.className = "mc-options-box";
+    q.options.forEach((opt, i) => {
+      const label = document.createElement("label"); label.className = "mc-option-wrapper";
+      const input = document.createElement("input");
+      input.type = "radio"; input.name = q.id;
+      if (userAnswers[q.id] === i) input.checked = true;
+      input.onchange = () => { userAnswers[q.id] = i; showSaved(); };
+      const letter = document.createElement("strong");
+      letter.textContent = letters[i] + ") ";
+      const text = document.createElement("span");
+      text.textContent = opt.answer;
+      label.appendChild(input); label.appendChild(letter); label.appendChild(text);
+      box.appendChild(label);
+    });
+    wrapper.appendChild(box);
+    el.mcSection.appendChild(wrapper);
+  });
+}
+
+/* FINAL HIGHLIGHTING (works perfectly now) */
+function showResultsPage() {
+  stopAllAudio();
+  document.getElementById("app").style.display = "none";
+  el.congratsOverlay.style.display = "none";
+  el.resultOverlay.style.display = "block";
+  let html = "", correct = 0, total = 0;
+
+  listeningSets.forEach((set, sIdx) => {
+    let transcribedText = set.transcription;
+
+    // Collect all highlights for this audio
+    const highlights = [];
+    set.questions.forEach((q, qIndex) => {
+      const colorClass = `evidence-${qIndex % 8}`;
+      const phrases = Array.isArray(q.keyphrases) ? q.keyphrases : [q.keyphrases];
+      phrases.forEach(phrase => {
+        const trimmed = phrase.trim();
+        if (trimmed) highlights.push({ phrase: trimmed, replacement: `<span class="${colorClass}">${trimmed}</span>` });
+      });
+    });
+
+    // Longest first to avoid partial matches
+    highlights.sort((a, b) => b.phrase.length - a.phrase.length);
+    highlights.forEach(hl => {
+      const escaped = hl.phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'g');
+      transcribedText = transcribedText.replace(regex, hl.replacement);
+    });
+
+    html += `<div class="result-box"><strong>Audio ${sIdx+1}</strong><div class="transcription">${transcribedText}</div></div>`;
+
+    set.questions.forEach((q, qIndex) => {
+      total++;
+      const userIdx = userAnswers[q.id];
+      const correctIdx = q.options.findIndex(o => o.correct);
+      if (userIdx === correctIdx) correct++;
+
+      const colorClass = `evidence-${qIndex % 8}`;
+      const badge = `<span style="background:#ff9800;color:white;padding:3px 9px;border-radius:5px;font-size:0.85rem;font-weight:bold;">Q${qIndex+1}</span>`;
+      html += `<div class="result-question">${badge} ${q.question}</div><div class="mc-options-box">`;
+      q.options.forEach((opt, i) => {
+        let cls = "result-option";
+        let extra = "";
+        if (i === correctIdx) cls += " correct";
+        if (i === userIdx && i !== correctIdx) cls += " wrong";
+        if (i === userIdx) extra = '<span class="your">Your answer → </span>';
+        html += `<div class="${cls}">${extra}<strong>${letters[i]})</strong> ${opt.answer}</div>`;
+      });
+      html += `</div>`;
+
+      const evidences = Array.isArray(q.keyphrases) ? q.keyphrases.map(p => p.trim()) : [];
+      if (evidences.length) {
+        html += `<div style="margin:10px 0;color:#d84315;font-size:0.98rem;">
+                   Evidence → <strong>${evidences.map(p => `“${p}”`).join(" , ")}</strong>
+                 </div>`;
+      }
+    });
+  });
+
+  const percent = Math.round((correct / total) * 100);
+  el.resultOverlay.innerHTML = `<div class="score-box">Final Score: ${correct}/${total} (${percent}%)</div>${html}`;
+}
+
+function initPage() {
+  stopAllAudio();
+  el.progressText.textContent = `${currentPage} out of ${TOTAL_PAGES}`;
+  el.setLabel.textContent = `Listening Question Set ${currentPage}`;
+  renderMCQs(currentPage);
+  startStudyTimerForPage(currentPage);
+  updateButtonText();
+}
+
+/* Event Listeners */
+el.skipCountdownBtn.onclick = () => { clearInterval(countdownInterval); timeLeft = 0; enterListeningPhase(); };
+el.playBtn.onclick = playAudioSequence;
+el.nextBtn.onclick = () => {
+  stopAllAudio();
+  if (currentPage < TOTAL_PAGES) { currentPage++; initPage(); }
+  else { el.congratsOverlay.style.display = "flex"; }
+};
+el.seeResultsBtn.onclick = () => { stopAllAudio(); el.congratsOverlay.style.display = "none"; showResultsPage(); };
+
+initPage();
+</script>
+</body>
+</html>
